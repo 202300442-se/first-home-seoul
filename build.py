@@ -10,6 +10,7 @@ from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
 import xml.etree.ElementTree as ET
 import time
+from fusion import fusion_data
 
 ROOT = Path(__file__).parent
 DISTRICTS = {'11230': '동대문구', '11290': '성북구', '11260': '중랑구'}
@@ -105,6 +106,7 @@ def main():
     now = datetime.now(KST)
     months = months_before(now)
     data = {'generated': now.isoformat(timespec='seconds'), 'months': months, 'districts': list(DISTRICTS.values()), 'rent': fetch_records(key, months), 'crime': crime_data(), 'crimeYear': 2024}
+    data['fusion'] = fusion_data()
     payload = json.dumps(data, ensure_ascii=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
     html = (ROOT / 'index.template.html').read_text(encoding='utf-8').replace('__PUBLIC_DATA__', payload)
     if key in html:
@@ -112,7 +114,7 @@ def main():
     out = ROOT / '_site'
     out.mkdir(exist_ok=True)
     (out / 'index.html').write_text(html, encoding='utf-8')
-    for name in ('style.css', 'app.js'):
+    for name in ('style.css', 'app.js', 'map.js'):
         (out / name).write_bytes((ROOT / name).read_bytes())
     (out / '.nojekyll').touch()
     (out / 'data.json').write_text(json.dumps(data, ensure_ascii=False), encoding='utf-8')

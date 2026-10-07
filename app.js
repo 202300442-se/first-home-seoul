@@ -35,13 +35,16 @@ function renderRows(){
   $('#page-status').textContent=`${page} / ${pages}`;
   $('#prev').disabled=page<=1;$('#next').disabled=page>=pages;
 }
-const groups=Object.keys(data.crime[data.districts[0]]);
-$('#crime-category').innerHTML=groups.map(g=>`<option value="${esc(g)}"${g==='절도범죄'?' selected':''}>${esc(g)}</option>`).join('');
+const groups=['강간·강제추행 등',...Object.keys(data.crime[data.districts[0]])];
+$('#crime-category').innerHTML=groups.map(g=>`<option value="${esc(g)}"${g==='마약범죄'?' selected':''}>${esc(g)}</option>`).join('');
 function renderCrime(){
-  const districts=selectedDistricts(),group=$('#crime-category').value;
-  const largest=Math.max(1,...data.districts.map(d=>data.crime[d][group]));
-  $('#crime-bars').innerHTML=districts.length?districts.map(d=>{const value=data.crime[d][group];return `<div class="crime-row"><span>${esc(d)}</span><div class="bar-track" aria-hidden="true"><div class="bar" style="width:${value/largest*100}%"></div></div><strong>${fmt(value)}건</strong></div>`;}).join(''):'<p>지역을 선택하면 발생 건수를 확인할 수 있습니다.</p>';
+  const districts=selectedDistricts(),group=$('#crime-category').value,rate=$('#crime-metric').value==='rate';
+  const count=d=>group==='강간·강제추행 등'?data.fusion.districts[d].sexual:data.crime[d][group];
+  const value=d=>rate?count(d)/data.fusion.districts[d].population*100000:count(d);
+  const largest=Math.max(1,...data.districts.map(value));
+  $('#crime-bars').innerHTML=districts.length?districts.map(d=>`<div class="crime-row"><span>${esc(d)}</span><div class="bar-track" aria-hidden="true"><div class="bar" style="width:${value(d)/largest*100}%"></div></div><strong>${fmt(value(d))}건</strong></div>`).join('')+`<p class="caption">${rate?'2024년 인구 10만 명당 발생 건수':'2024년 발생 건수'}</p>`:'<p>지역을 선택하면 발생 건수를 확인할 수 있습니다.</p>';
 }
+$('#crime-metric').addEventListener('change',renderCrime);
 $('#filters').addEventListener('input',render);
 $('#filters').addEventListener('submit',e=>e.preventDefault());
 $('#sort').addEventListener('change',()=>{page=1;renderRows();});
