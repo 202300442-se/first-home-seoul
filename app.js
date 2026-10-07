@@ -5,7 +5,7 @@ const fmt = n => new Intl.NumberFormat('ko-KR', {maximumFractionDigits:1}).forma
 const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const median = values => {if (!values.length) return null; const v=[...values].sort((a,b)=>a-b), i=Math.floor(v.length/2); return v.length%2?v[i]:(v[i-1]+v[i])/2;};
 let page = 1, filtered = [];
-const pageSize = 15;
+const pageSize = 6;
 const selectedDistricts = () => [...document.querySelectorAll('[name=district]:checked')].map(x=>x.value);
 const displayMonth = m => `${m.slice(0,4)}.${m.slice(4)}`;
 $('#period').textContent = `${displayMonth(data.months[0])} – ${displayMonth(data.months.at(-1))} 계약`;
@@ -31,7 +31,7 @@ function renderRows(){
   const order=$('#sort').value;
   filtered.sort((a,b)=>order==='date'?b.date.localeCompare(a.date):a[order]-b[order]||b.date.localeCompare(a.date));
   const pages=Math.max(1,Math.ceil(filtered.length/pageSize));page=Math.min(page,pages);
-  $('#rows').innerHTML=filtered.length?filtered.slice((page-1)*pageSize,page*pageSize).map(r=>`<tr><td class="building"><small>${esc(r.district)} ${esc(r.dong)}</small>${esc(r.building||'건물명 미제공')}</td><td>${fmt(r.deposit)}</td><td>${r.rent===0?'전세':fmt(r.rent)}</td><td>${fmt(r.area)}㎡<small>${esc(r.floor||'미제공')}${r.floor?'층':''}</small></td><td>${esc(r.date)}<small>${esc(r.contract)}</small></td></tr>`).join(''):'<tr><td colspan="5" class="empty">조건에 맞는 계약이 없습니다. 지역을 선택하거나 금액·면적 범위를 넓혀 보세요.</td></tr>';
+  $('#rows').innerHTML=filtered.length?filtered.slice((page-1)*pageSize,page*pageSize).map(r=>`<tr><td class="building" data-label="지역 / 건물"><small>${esc(r.district)} ${esc(r.dong)}</small>${esc(r.building||'건물명 미제공')}</td><td data-label="보증금">${fmt(r.deposit)}<span class="mobile-unit">만원</span></td><td data-label="월세">${r.rent===0?'전세':fmt(r.rent)+'<span class="mobile-unit">만원</span>'}</td><td data-label="면적 / 층">${fmt(r.area)}㎡<small>${esc(r.floor||'미제공')}${r.floor?'층':''}</small></td><td data-label="계약일 / 구분">${esc(r.date)}<small>${esc(r.contract)}</small></td></tr>`).join(''):'<tr><td colspan="5" class="empty">조건에 맞는 계약이 없습니다. 지역을 선택하거나 금액·면적 범위를 넓혀 보세요.</td></tr>';
   $('#page-status').textContent=`${page} / ${pages}`;
   $('#prev').disabled=page<=1;$('#next').disabled=page>=pages;
 }
